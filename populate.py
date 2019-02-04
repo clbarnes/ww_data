@@ -186,24 +186,27 @@ def get_paths() -> Iterable[Tuple[Path, str]]:
                 logger.debug('Found %s URLs', len(anchors))
 
                 for anchor in anchors:
-                    ext = anchor.text.strip(') ')
+                    ext = anchor.text.strip(' ()')
                     logger.debug('Processing anchor "%s"', ext)
                     if ext in parseable:
                         yield sub_dir / (li_title + ext), root_url + anchor.attrs['href'].lstrip('./')
 
 
-def hash_file(rel_path: Path, md5=None, hash_path=False):
+def hash_file(fpath: Path, md5=None, hash_path=False, root=None):
     """ Hash a file (and optionally, its path)
 
     Adapted from https://stackoverflow.com/a/22058673/2700168"""
     buf_size = 65536
     md5 = hashlib.md5() if md5 is None else md5.copy()
 
+    root = root or fpath.anchor
+
     if hash_path:
-        for part in rel_path.parts:
+        fpath.relative_to(root)
+        for part in fpath.parts:
             md5.update(part.encode())
 
-    with open(rel_path, 'rb') as f:
+    with open(fpath, 'rb') as f:
         while True:
             data = f.read(buf_size)
             if not data:
@@ -221,8 +224,7 @@ def hash_dirs(root: Path) -> hashlib.md5:
         dirnames.sort()
         for fname in sorted(filenames):
             fpath = Path(this_root, fname)
-            rel_fpath = fpath.relative_to(root)
-            md5 = hash_file(rel_fpath, md5, True)
+            md5 = hash_file(fpath, md5, True, root)
 
     return md5
 
@@ -234,38 +236,21 @@ def process(path, url):
         logger.warning(str(e))
 
 
-class DirChecker:
-    def __init__(self, root_dir):
-        self.root_dir = root_dir
-        self.initial_digest = None
-        self.final_digest = None
-
-    @property
-    def has_changed(self):
-        if self.initial_digest is None:
-            raise RuntimeError("Initial hash not completed, cannot compare states")
-        final_digest = self.final_digest or self._get_digest()
-        return final_digest != self.initial_digest
-
-    def _get_digest(self):
-        return hash_dirs(self.root_dir).hexdigest()
-
-    def __enter__(self):
-        self.initial_digest = self._get_digest()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.final_digest = self._get_digest()
-
-
 def main():
-    with DirChecker(data_dir) as d:
-        for path, url in get_paths():
-            process(path, url)
+    last_changed: Path = here / "last_changed.txt"
 
-    if d.has_changed:
-        with open(here / "last_changed.txt", "w") as f:
-            f.write(datetime.utcnow().isoformat())
+    if last_changed.exists():
+        old_digest = last_changed.read_text().split()[0]
+    else:
+        old_digest = None
+
+    for path, url in get_paths():
+        process(path, url)
+
+    new_digest = hash_dirs(data_dir).hexdigest()
+
+    if old_digest != new_digest:
+        last_changed.write_text(f"{new_digest}\n{datetime.utcnow().isoformat()}")
 
 
 if __name__ == '__main__':
