@@ -3,9 +3,11 @@
 Plaintext datasets from [WormWiring](http://wormwiring.org/series/),
 under git control for version-pinning purposes.
 
-See [last_changed.txt](./last_changed.txt) for when the dataset was last changed, 
-in [ISO-8601](https://en.wikipedia.org/wiki/ISO_8601),
-as well as the md5hash of the contents of [./data](./data).
+[last_changed.txt](./last_changed.txt) contains
+
+- a 32-character hexadecimal md5 hashsum of the contents of [./data](./data),
+- a line break
+- a UTC timestamp of when the [./populate.py](./populate.py) script last changed the data, in [ISO-8601](https://en.wikipedia.org/wiki/ISO_8601) format
 
 ## Populate
 
@@ -22,6 +24,24 @@ If the dataset has changed, [last_changed.txt](./last_changed.txt) will be updat
 
 ## Attribution
 
-This repository is unreleased and therefore intentionally unlicensed.
+Data available on WormWiring; analysis published in Nature https://doi.org/10.1038/s41586-019-1352-7
+
+```bibtex
+@article{cook2019whole,
+  title={Whole-animal connectomes of both Caenorhabditis elegans sexes},
+  author={Cook, Steven J and Jarrell, Travis A and Brittin, Christopher A and Wang, Yi and Bloniarz, Adam E and Yakovlev, Maksim A and Nguyen, Ken CQ and Tang, Leo T-H and Bayer, Emily A and Duerr, Janet S and Bülow, Hannes E and Hobert, Oliver and Hall, David H and Emmons, Scott W},
+  journal={Nature},
+  volume={571},
+  number={7763},
+  pages={63},
+  year={2019},
+  doi={10.1038/s41586-019-1352-7},
+  url={https://doi.org/10.1038/s41586-019-1352-7},
+  publisher={Nature Publishing Group}
+}
+```
+
+License is as relevant to those sources.
 
 All credit and attribution should go to the [Emmons lab](http://wormwiring.org/pages/contact.htm).
+
